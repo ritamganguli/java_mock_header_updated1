@@ -22,7 +22,6 @@ TestNGTodo2.java: This is a sample test class that sets up the testing environme
 PythonFileModifier.java
 This class is responsible for modifying specific lines in a Python file to include mock data. Save this file in the directory where your test cases are written.
 
-```
 package com.lambdatest;
 
 import java.io.IOException;
@@ -78,5 +77,4 @@ public class PythonFileModifier {
         return sb.toString();
     }
 }
-```
 
