@@ -1,830 +1,262 @@
-# Modifying Request Headers with MITMProxy 🛠️
+# Run Selenium Tests With TestNG On LambdaTest
 
-This project demonstrates how to modify request headers using MITMProxy in a backend setup. The project is set up using Java, and includes custom utilities for file modification and port allocation to facilitate testing.
+![image](https://user-images.githubusercontent.com/70570645/171934563-4806efd2-1154-494c-a01d-1def95657383.png)
 
-## Cloning the Repository 📂
 
-To get started, clone the repository using the following command:
+<p align="center">
+  <a href="https://www.lambdatest.com/blog/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium" target="_bank">Blog</a>
+  &nbsp; &#8901; &nbsp;
+  <a href="https://www.lambdatest.com/support/docs/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium" target="_bank">Docs</a>
+  &nbsp; &#8901; &nbsp;
+  <a href="https://www.lambdatest.com/learning-hub/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium" target="_bank">Learning Hub</a>
+  &nbsp; &#8901; &nbsp;
+  <a href="https://www.lambdatest.com/newsletter/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium" target="_bank">Newsletter</a>
+  &nbsp; &#8901; &nbsp;
+  <a href="https://www.lambdatest.com/certification/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium" target="_bank">Certifications</a>
+  &nbsp; &#8901; &nbsp;
+  <a href="https://www.youtube.com/c/LambdaTest" target="_bank">YouTube</a>
+</p>
+&emsp;
+&emsp;
+&emsp;
+
+*Learn how to use TestNG framework to configure and run your Java automation testing scripts on the LambdaTest platform*
+
+[<img height="58" width="200" src="https://user-images.githubusercontent.com/70570645/171866795-52c11b49-0728-4229-b073-4b704209ddde.png">](https://accounts.lambdatest.com/register?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+
+## Table Of Contents
+
+* [Pre-requisites](#pre-requisites)
+* [Run Your First Test](#run-your-first-test)
+* [Parallel Testing With TestNG](#executing-parallel-tests-using-testng)
+* [Local Testing With TestNG](#testing-locally-hosted-or-privately-hosted-projects)
+
+## Pre-requisites
+
+Before you can start performing Java automation testing with Selenium, you would need to:
+
+- Install the latest **Java development environment** i.e. **JDK 1.6** or higher. We recommend using the latest version.
+
+- Download the latest **Selenium Client** and its **WebDriver bindings** from the [official website](https://www.selenium.dev/downloads/). Latest versions of Selenium Client and WebDriver are ideal for running your automation script on LambdaTest Selenium cloud grid.
+
+- Install **Maven** which supports **JUnit** framework out of the box. **Maven** can be downloaded and installed following the steps from [the official website](https://maven.apache.org/). Maven can also be installed easily on **Linux/MacOS** using [Homebrew](https://brew.sh/) package manager.
+
+### Cloning Repo And Installing Dependencies
+
+**Step 1:** Clone the LambdaTest’s Java-TestNG-Selenium repository and navigate to the code directory as shown below:
 
 ```bash
-git clone https://github.com/ritamganguli/java_mock_header_updated2.git
-cd java_mock_header_updated2
+git clone https://github.com/LambdaTest/Java-TestNG-Selenium
+cd Java-TestNG-Selenium
 ```
 
-
-##  Project Overview 📋
-
-
-This project utilizes MITMProxy to mock request headers. The key components include:
-
-**PythonFileModifier.java: **This utility modifies lines in a Python file to include mock data for testing.
-**PortAllocator.java:** This utility allocates random ports for each session to avoid conflicts.
-**TestNGTodo2.java: **This is a sample test class that sets up the testing environment, starts the MITMProxy server, and defines test cases.
-**mock_proxy.py:** This uses the mitmproxy server service and mocks up the response
-**start_mitmproxy.sh**: bashian script which start the mitmdump server
-
-
-Prerequisites 📜
-
-Before you begin, ensure you have the following installed:
-
-- Java Development Kit (JDK)
-- Maven
-- Python
-- MITMProxy
-- Git bash /bash 
-
-You can install mitmproxy by the follow command
-
-```
-brew install mitmproxy
-pip install mitmproxy
-```
-
-## start_mitmproxy.sh
-
-```
-#!/bin/bash
-
-# Parameters
-SCRIPT_PATH=$1
-LISTEN_PORT=$2
-
-# Start mitmproxy with the specified script and port
-/usr/local/bin/mitmdump -s $SCRIPT_PATH --mode regular@$LISTEN_PORT
-
-```
-
-
-## mock_proxy.py
-
-This is the code script for mock proxy server which modifies the request headears
-
-```
-from mitmproxy import http
-import json
-
-# Define the URLs and headers to modify
-def response(flow: http.HTTPFlow) -> None:
-    api_url = flow.request.pretty_url
-    if api_url in urls_to_mock:
-        # Modify the specified headers
-        for header, value in urls_to_mock[api_url].items():
-            flow.response.headers[header] = value
-
-        # Save headers to a file
-        headers = {k: v for k, v in flow.response.headers.items()}
-        with open("modified_headers.json", "w") as file:
-            json.dump(headers, file, indent=2)
-        print(f"Modified headers for {api_url}: {headers}")
-
-```
-
-
-PythonFileModifier.java
-This class is responsible for modifying specific lines in a Python file to include mock data. Save this file in the directory where your test cases are written.
-Please ensure that you place this class over the test class directory
-
-```
-
-package com.lambdatest;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
-
-public class PythonFileModifier {
-
-    private static final ConcurrentHashMap<String, ReentrantLock> lockMap = new ConcurrentHashMap<>();
-
-    public static void modifyLineInFile(String filePath, Map<String, Map<String, String>> mockData) {
-        int lineNumberMockData = 4; // Line number for mock data
-        String newContentMockData = "urls_to_mock = " + mapToPythonDict(mockData);
-
-        // Get or create a lock for the specific file path
-        ReentrantLock lock = lockMap.computeIfAbsent(filePath, k -> new ReentrantLock());
-
-        lock.lock();
-        try {
-            List<String> lines = Files.readAllLines(Paths.get(filePath));
-            // Replace the specific line for mock data
-            lines.set(lineNumberMockData - 1, newContentMockData);
-            // Write back to the file
-            Files.write(Paths.get(filePath), lines);
-            System.out.println("Lines set successfully for file: " + filePath);
-            System.out.println("Mock data content: " + newContentMockData);
-        } catch (IOException e) {
-            System.err.println("An error occurred: " + e.getMessage());
-        } finally {
-            lock.unlock();
-            // Optional: Clean up the lock map if needed
-            lockMap.remove(filePath);
-        }
-    }
-
-    private static String mapToPythonDict(Map<String, Map<String, String>> map) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        for (Map.Entry<String, Map<String, String>> entry : map.entrySet()) {
-            sb.append("'").append(entry.getKey()).append("': {");
-            for (Map.Entry<String, String> subEntry : entry.getValue().entrySet()) {
-                sb.append("'").append(subEntry.getKey()).append("': '").append(subEntry.getValue()).append("', ");
-            }
-            sb.delete(sb.length() - 2, sb.length()); // Remove trailing comma and space
-            sb.append("}, ");
-        }
-        sb.delete(sb.length() - 2, sb.length()); // Remove trailing comma and space
-        sb.append("}");
-        return sb.toString();
-    }
-}
-```
-
-## **PortAllocator.java**
-
-This class allocates random ports for each session, ensuring no two sessions use the same port. Save this file at the class level of the test cases.
-
-```
-package com.lambdatest;
-
-import java.util.Random;
-
-public class PortAllocator {
-    private static int currentPort = generateRandomPort();
-    private static final Object lock = new Object();
-    private static final int EXCLUDED_PORT = 8080;
-    private static final int MIN_PORT = 1000;
-    private static final int MAX_PORT = 9999;
-
-    private static int generateRandomPort() {
-        Random random = new Random();
-        int port;
-        do {
-            port = random.nextInt((MAX_PORT - MIN_PORT) + 1) + MIN_PORT;
-        } while (port == EXCLUDED_PORT);
-        return port;
-    }
-
-    public static int getNextPort() {
-        synchronized (lock) {
-            return currentPort++;
-        }
-    }
-}
-```
-
-## TestNGTodo2.java
-
-This is an example of a test class using the Maven Tunnel to start up the tunnel and run tests.
-
-
-```
-
-package com.lambdatest;
-
-import org.openqa.selenium.remote.DesiredCapabilities;
-import org.openqa.selenium.remote.RemoteWebDriver;
-import org.testng.ITestContext;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-import com.lambdatest.tunnel.Tunnel;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-public class TestNGTodo2 {
-    private Tunnel t;
-    private RemoteWebDriver driver;
-    private String Status = "failed";
-    private Process mitmproxyProcess;
-    private String newFilePath;
-
-    @BeforeMethod
-    public void setup(Method m, ITestContext ctx) throws Exception {
-        String username = "ritamg";
-        String authkey = "acees_key";
-        String hub = "@hub.lambdatest.com/wd/hub";
-
-        int port = PortAllocator.getNextPort();
-
-        t = new Tunnel();
-        HashMap<String, String> options = new HashMap<>();
-        options.put("user", username);
-        options.put("key", authkey);
-        options.put("mitm", "true");
-        options.put("proxyHost", "localhost");
-        options.put("proxyPort", String.valueOf(port));
-        options.put("ingress-only", "true");
-        options.put("tunnelName",m.getName() + this.getClass().getName());
-        t.start(options);
-
-        // Start the LambdaTest Tunnel
-        String originalFilePath = "ritam.py";
-        newFilePath = m.getName() + "_" + this.getClass().getName() + ".py";
-        Files.copy(Paths.get(originalFilePath), Paths.get(newFilePath), StandardCopyOption.REPLACE_EXISTING);
-
-        // Start mitmdump with the copied script
-        ProcessBuilder processBuilder = new ProcessBuilder("./start_mitmproxy.sh", newFilePath, String.valueOf(port));
-        mitmproxyProcess = processBuilder.start();
-        System.out.println("Proxy server started on port " + port);
-
-        // Capture and handle process output streams to prevent blocking
-        Executors.newSingleThreadExecutor().submit(() -> {
-            try (InputStream is = mitmproxyProcess.getInputStream()) {
-                byte[] buffer = new byte[1024];
-                while (is.read(buffer) != -1) {
-                    // Do nothing, just consume the stream to prevent blocking
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-
-        Executors.newSingleThreadExecutor().submit(() -> {
-            try (InputStream is = mitmproxyProcess.getErrorStream()) {
-                byte[] buffer = new byte[1024];
-                while (is.read(buffer) != -1) {
-                    // Do nothing, just consume the stream to prevent blocking
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-
-        // Configure DesiredCapabilities
-        DesiredCapabilities caps = new DesiredCapabilities();
-        caps.setCapability("platform", "Windows 10");
-        caps.setCapability("browserName", "chrome");
-        caps.setCapability("version", "latest");
-        caps.setCapability("build", "TestNG With Java");
-        caps.setCapability("name", m.getName() + this.getClass().getName());
-        caps.setCapability("plugin", "git-testng");
-        caps.setCapability("tunnel", true);
-        caps.setCapability("tunnelName",m.getName() + this.getClass().getName());
-        caps.setCapability("network", true);
-
-        String[] Tags = new String[]{"Feature", "Magicleap", "Severe"};
-        caps.setCapability("tags", Tags);
-
-        driver = new RemoteWebDriver(new URL("https://" + username + ":" + authkey + hub), caps);
-    }
-
-    @Test
-    public void basicTest() throws InterruptedException {
-        System.out.println("Loading Url");
-
-        Map<String, Map<String, String>> mockData = new HashMap<>();
-
-        // Define the mock data for a single API
-        Map<String, String> api1MockData = new HashMap<>();
-        api1MockData.put("Server", "ritam2.com");
-        mockData.put("https://www.lambdatest.com/resources/js/zohocrm.js", api1MockData);
-
-        Map<String, String> api2MockData = new HashMap<>();
-        api2MockData.put("Referrer-Policy", "value2");
-        mockData.put("https://www.lambdatest.com/resources/js/zohoscript.js",api2MockData);
-
-        // Modify the Python file with the mock data
-        PythonFileModifier.modifyLineInFile(newFilePath,mockData);
-
-        Thread.sleep(10000);
-        driver.get("https://lambdatest.com/");
-        Thread.sleep(15000);
-
-        Status = "passed";
-        System.out.println("Test Finished");
-    }
-
-    @AfterMethod
-    public void tearDown() {
-        if (driver != null) {
-            driver.executeScript("lambda-status=" + Status);
-            driver.quit();
-        }
-
-        // Stop the LambdaTest Tunnel
-        if (t != null) {
-            try {
-                t.stop();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        // Stop mitmproxy process
-        if (mitmproxyProcess != null) {
-            mitmproxyProcess.destroy();
-            try {
-                if (!mitmproxyProcess.waitFor(50, TimeUnit.SECONDS)) {
-                    mitmproxyProcess.destroyForcibly();
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-}
-```
-
-## Starting the Maven Tunnel 🚀
-Here's an example of how to start the Maven tunnel:
-This should be settes up in beforemethoud or beforetest
-
-```
-String username = "ritamg";
-String authkey = "acess_key";
-String hub = "@hub.lambdatest.com/wd/hub";
-
-int port = PortAllocator.getNextPort();  // Allocates random port and ensures no other session uses this port
-
-t = new Tunnel();
-HashMap<String, String> options = new HashMap<>();
-options.put("user", username);
-options.put("key", authkey);
-options.put("mitm", "true");
-options.put("proxyHost", "localhost"); // Sets the local host
-options.put("proxyPort", String.valueOf(port)); // Gets the proxy port
-options.put("ingress-only", "true");
-options.put("tunnelName", m.getName() + this.getClass().getName());
-t.start(options); // Starts the tunnel
-
-String originalFilePath = "ritam.py";
-newFilePath = m.getName() + "_" + this.getClass().getName() + ".py";
-Files.copy(Paths.get(originalFilePath), Paths.get(newFilePath), StandardCopyOption.REPLACE_EXISTING);
-
-// Spinning up the mitmproxy server
-ProcessBuilder processBuilder = new ProcessBuilder("./start_mitmproxy.sh", newFilePath, String.valueOf(port));
-mitmproxyProcess = processBuilder.start();
-System.out.println("Proxy server started on port " + port);
-
-
-```
-
-Also, please ensure that you add the following dependency over your pom.xml for maven tunnel
-
-```
-		<dependency>
-			<groupId>com.github.lambdatest</groupId>
-			<artifactId>lambdatest-tunnel-binary</artifactId>
-			<version>4.0.1-beta</version>
-		</dependency>
-```
-
-
-Using the Proxy Server in Test Cases 🌐
-Here's how to use the proxy server in your test cases:
-
-
-```
-Map<String, Map<String, String>> mockData = new HashMap<>();
-
-// Define the mock data for a single API
-Map<String, String> api1MockData = new HashMap<>();
-api1MockData.put("Server", "ritam2.com");
-mockData.put("https://www.lambdatest.com/resources/js/zohocrm.js", api1MockData);
-
-Map<String, String> api2MockData = new HashMap<>();
-api2MockData.put("Referrer-Policy", "value2");
-mockData.put("https://www.lambdatest.com/resources/js/zohoscript.js", api2MockData);
-
-// Modify the Python file with the mock data
-PythonFileModifier.modifyLineInFile(newFilePath, mockData);
-
-```
-
-Shell
-
-
-
-
-Conclusion 🎉
-This project provides a robust setup for modifying request headers using MITMProxy, enabling extensive testing capabilities. By following the examples and guidelines provided, you can easily integrate these utilities into your own testing environment.
-# Modifying Request Headers with MITMProxy 🛠️
-
-This project demonstrates how to modify request headers using MITMProxy in a backend setup. The project is set up using Java, and includes custom utilities for file modification and port allocation to facilitate testing.
-
-## Cloning the Repository 📂
-
-To get started, clone the repository using the following command:
+You can also run the command below to check for outdated dependencies.
 
 ```bash
-git clone https://github.com/ritamganguli/java_mock_header_updated2.git
-cd java_mock_header_updated2
+mvn versions:display-dependency-updates
 ```
 
+### Setting Up Your Authentication
 
-## Project Ovierview 📋
+Make sure you have your LambdaTest credentials with you to run test automation scripts. You can get these credentials from the [LambdaTest Automation Dashboard](https://automation.lambdatest.com/build?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium) or by your [LambdaTest Profile](https://accounts.lambdatest.com/login?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium).
+
+**Step 2:** Set LambdaTest **Username** and **Access Key** in environment variables.
+
+* For **Linux/macOS**:
+  
+  ```bash
+  export LT_USERNAME="YOUR_USERNAME" 
+  export LT_ACCESS_KEY="YOUR ACCESS KEY"
+  ```
+  * For **Windows**:
+  ```bash
+  set LT_USERNAME="YOUR_USERNAME" 
+  set LT_ACCESS_KEY="YOUR ACCESS KEY"
+  ```
+
+## Run Your First Test
+
+>**Test Scenario**: The sample [TestNGTodo1.java](https://github.com/LambdaTest/Java-TestNG-Selenium/blob/master/src/test/java/com/lambdatest/TestNGTodo1.java) tests a sample to-do list app by marking couple items as done, adding a new item to the list and finally displaying the count of pending items as output.
 
 
-This project utilizes MITMProxy to mock request headers. The key components include:
+### Configuring Your Test Capabilities
 
-**PythonFileModifier.java: **This utility modifies lines in a Python file to include mock data for testing.
-**PortAllocator.java:** This utility allocates random ports for each session to avoid conflicts.
-**TestNGTodo2.java: **This is a sample test class that sets up the testing environment, starts the MITMProxy server, and defines test cases.
-**mock_proxy.py:** This uses the mitmproxy server service and mocks up the response
-**start_mitmproxy.sh**: bashian script which start the mitmdump server
+**Step 3:** In the test script, you need to update your test capabilities. In this code, we are passing browser, browser version, and operating system information, along with LambdaTest Selenium grid capabilities via capabilities object. The capabilities object in the above code are defined as:
 
-
-Prerequisites 📜
-
-Before you begin, ensure you have the following installed:
-
-- Java Development Kit (JDK)
-- Maven
-- Python
-- MITMProxy
-- Git bash /bash 
-
-You can install mitmproxy by the follow command
-
-```
-brew install mitmproxy
-pip install mitmproxy
-```
-
-## start_mitmproxy.sh
-
-```
-#!/bin/bash
-
-# Parameters
-SCRIPT_PATH=$1
-LISTEN_PORT=$2
-
-# Start mitmproxy with the specified script and port
-/usr/local/bin/mitmdump -s $SCRIPT_PATH --mode regular@$LISTEN_PORT
-
+```java
+DesiredCapabilities capabilities = new DesiredCapabilities();
+        capabilities.setCapability("browserName", "chrome");
+        capabilities.setCapability("version", "70.0");
+        capabilities.setCapability("platform", "win10"); // If this cap isn't specified, it will just get the any available one
+        capabilities.setCapability("build", "LambdaTestSampleApp");
+        capabilities.setCapability("name", "LambdaTestJavaSample");
 ```
 
+You can generate capabilities for your test requirements with the help of our inbuilt [Desired Capability Generator](https://www.lambdatest.com/capabilities-generator/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium).
 
-## mock_proxy.py
+### Executing The Test
 
-This is the code script for mock proxy server which modifies the request headears
+**Step 4:** The tests can be executed in the terminal using the following command.
 
-```
-from mitmproxy import http
-import json
-
-# Define the URLs and headers to modify
-def response(flow: http.HTTPFlow) -> None:
-    api_url = flow.request.pretty_url
-    if api_url in urls_to_mock:
-        # Modify the specified headers
-        for header, value in urls_to_mock[api_url].items():
-            flow.response.headers[header] = value
-
-        # Save headers to a file
-        headers = {k: v for k, v in flow.response.headers.items()}
-        with open("modified_headers.json", "w") as file:
-            json.dump(headers, file, indent=2)
-        print(f"Modified headers for {api_url}: {headers}")
-
+```bash
+mvn test -D suite=single.xml
 ```
 
+Your test results would be displayed on the test console (or command-line interface if you are using terminal/cmd) and on LambdaTest automation dashboard. 
 
-PythonFileModifier.java
-This class is responsible for modifying specific lines in a Python file to include mock data. Save this file in the directory where your test cases are written.
-Please ensure that you place this class over the test class directory
+## Run Parallel Tests Using TestNG
 
+
+Here is an example `xml` file which would help you to run a single test on various browsers at the same time, you would also need to generate a testcase which makes use of **TestNG** framework parameters (`org.testng.annotations.Parameters`).
+
+```xml title="testng.xml"
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite thread-count="3" name="LambaTestSuite" parallel="tests">
+
+  <test name="WIN8TEST">
+  <parameter name="browser" value="firefox"/>
+  <parameter name="version" value="62.0"/>
+  <parameter name="platform" value="WIN8"/>
+    <classes>
+      <class name="LambdaTest.TestNGToDo"/>
+    </classes>
+  </test> <!-- Test -->
+
+  <test name="WIN10TEST">
+  <parameter name="browser" value="chrome"/>
+  <parameter name="version" value="79.0"/>
+  <parameter name="platform" value="WIN10"/>
+    <classes>
+      <class name="LambdaTest.TestNGToDo"/>
+    </classes>
+  </test> <!-- Test -->
+  <test name="MACTEST">
+  <parameter name="browser" value="safari"/>
+  <parameter name="version" value="11.0"/>
+  <parameter name="platform" value="macos 10.13"/>
+    <classes>
+      <class name="LambdaTest.TestNGToDo"/>
+    </classes>
+  </test> <!-- Test -->
+
+</suite>
 ```
 
-package com.lambdatest;
+### Executing Parallel Tests Using TestNG
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
+To run parallel tests using **TestNG**, we would have to execute the below commands in the terminal:
 
-public class PythonFileModifier {
+- For the above example code
+  ```bash
+  mvn test
+  ```
+- For the cloned Java-TestNG-Selenium repo used to run our first sample test
+  ```bash
+  mvn test -D suite=parallel.xml
+  ```
 
-    private static final ConcurrentHashMap<String, ReentrantLock> lockMap = new ConcurrentHashMap<>();
+## Testing Locally Hosted Or Privately Hosted Projects
 
-    public static void modifyLineInFile(String filePath, Map<String, Map<String, String>> mockData) {
-        int lineNumberMockData = 4; // Line number for mock data
-        String newContentMockData = "urls_to_mock = " + mapToPythonDict(mockData);
+You can test your locally hosted or privately hosted projects with LambdaTest Selenium grid using LambdaTest Tunnel. All you would have to do is set up an SSH tunnel using tunnel and pass toggle `tunnel = True` via desired capabilities. LambdaTest Tunnel establishes a secure SSH protocol based tunnel that allows you in testing your locally hosted or privately hosted pages, even before they are live.
 
-        // Get or create a lock for the specific file path
-        ReentrantLock lock = lockMap.computeIfAbsent(filePath, k -> new ReentrantLock());
+Refer our [LambdaTest Tunnel documentation](https://www.lambdatest.com/support/docs/testing-locally-hosted-pages/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium) for more information.
 
-        lock.lock();
-        try {
-            List<String> lines = Files.readAllLines(Paths.get(filePath));
-            // Replace the specific line for mock data
-            lines.set(lineNumberMockData - 1, newContentMockData);
-            // Write back to the file
-            Files.write(Paths.get(filePath), lines);
-            System.out.println("Lines set successfully for file: " + filePath);
-            System.out.println("Mock data content: " + newContentMockData);
-        } catch (IOException e) {
-            System.err.println("An error occurred: " + e.getMessage());
-        } finally {
-            lock.unlock();
-            // Optional: Clean up the lock map if needed
-            lockMap.remove(filePath);
-        }
-    }
+Here’s how you can establish LambdaTest Tunnel.
 
-    private static String mapToPythonDict(Map<String, Map<String, String>> map) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        for (Map.Entry<String, Map<String, String>> entry : map.entrySet()) {
-            sb.append("'").append(entry.getKey()).append("': {");
-            for (Map.Entry<String, String> subEntry : entry.getValue().entrySet()) {
-                sb.append("'").append(subEntry.getKey()).append("': '").append(subEntry.getValue()).append("', ");
-            }
-            sb.delete(sb.length() - 2, sb.length()); // Remove trailing comma and space
-            sb.append("}, ");
-        }
-        sb.delete(sb.length() - 2, sb.length()); // Remove trailing comma and space
-        sb.append("}");
-        return sb.toString();
-    }
-}
+Download the binary file of:
+* [LambdaTest Tunnel for Windows](https://downloads.lambdatest.com/tunnel/v3/windows/64bit/LT_Windows.zip)
+* [LambdaTest Tunnel for macOS](https://downloads.lambdatest.com/tunnel/v3/mac/64bit/LT_Mac.zip)
+* [LambdaTest Tunnel for Linux](https://downloads.lambdatest.com/tunnel/v3/linux/64bit/LT_Linux.zip)
+
+Open command prompt and navigate to the binary folder.
+
+Run the following command:
+
+```bash
+LT -user {user’s login email} -key {user’s access key}
+```
+So if your user name is lambdatest@example.com and key is 123456, the command would be:
+
+```bash
+LT -user lambdatest@example.com -key 123456
+```
+Once you are able to connect **LambdaTest Tunnel** successfully, you would just have to pass on tunnel capabilities in the code shown below :
+
+**Tunnel Capability**
+
+```java
+DesiredCapabilities capabilities = new DesiredCapabilities();        
+        capabilities.setCapability("tunnel", true);
 ```
 
-## **PortAllocator.java**
+## Tutorials 📙
 
-This class allocates random ports for each session, ensuring no two sessions use the same port. Save this file at the class level of the test cases.
+Check out our latest tutorials on TestNG automation testing 👇
 
-```
-package com.lambdatest;
-
-import java.util.Random;
-
-public class PortAllocator {
-    private static int currentPort = generateRandomPort();
-    private static final Object lock = new Object();
-    private static final int EXCLUDED_PORT = 8080;
-    private static final int MIN_PORT = 1000;
-    private static final int MAX_PORT = 9999;
-
-    private static int generateRandomPort() {
-        Random random = new Random();
-        int port;
-        do {
-            port = random.nextInt((MAX_PORT - MIN_PORT) + 1) + MIN_PORT;
-        } while (port == EXCLUDED_PORT);
-        return port;
-    }
-
-    public static int getNextPort() {
-        synchronized (lock) {
-            return currentPort++;
-        }
-    }
-}
-```
-
-## TestNGTodo2.java
-
-This is an example of a test class using the Maven Tunnel to start up the tunnel and run tests.
+* [JUnit 5 vs TestNG: Choosing the Right Framework for Automation Testing](https://www.lambdatest.com/blog/junit-5-vs-testng/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+* [How To Install TestNG?](https://www.lambdatest.com/blog/how-to-install-testng-in-eclipse-step-by-step-guide/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+* [Create TestNG Project in Eclipse & Run Selenium Test Script](https://www.lambdatest.com/blog/create-testng-project-in-eclipse-run-selenium-test-script/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+* [A Complete Guide for Your First TestNG Automation Script](https://www.lambdatest.com/blog/a-complete-guide-for-your-first-testng-automation-script/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+* [How to Automate using TestNG in Selenium?](https://www.lambdatest.com/blog/testng-in-selenium/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+* [How to Perform Parallel Test Execution in TestNG with Selenium](https://www.lambdatest.com/blog/parallel-test-execution-in-testng/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+* [Creating TestNG XML File & Execute Parallel Testing](https://www.lambdatest.com/blog/create-testng-xml-file-execute-parallel-testing/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+* [Speed Up Automated Parallel Testing in Selenium with TestNG](https://www.lambdatest.com/blog/speed-up-automated-parallel-testing-in-selenium-with-testng/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+* [Automation Testing With Selenium, Cucumber & TestNG](https://www.lambdatest.com/blog/automation-testing-with-selenium-cucumber-testng/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+* [How to Run JUnit Selenium Tests using TestNG](https://www.lambdatest.com/blog/test-example-junit-and-testng-in-selenium/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+* [How to Group Test Cases in TestNG [With Examples]](https://www.lambdatest.com/blog/grouping-test-cases-in-testng/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+* [How to Set Test Case Priority in TestNG with Selenium](https://www.lambdatest.com/blog/prioritizing-tests-in-testng-with-selenium/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+* [How to Use Assertions in TestNG with Selenium](https://www.lambdatest.com/blog/asserts-in-testng/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+* [How to Use DataProviders in TestNG [With Examples]](https://www.lambdatest.com/blog/how-to-use-dataproviders-in-testng-with-examples/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+* [Parameterization in TestNG - DataProvider and TestNG XML [With Examples]](https://www.lambdatest.com/blog/parameterization-in-testng-dataprovider-and-testng-xml-examples/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+* [TestNG Listeners in Selenium WebDriver [With Examples]](https://www.lambdatest.com/blog/testng-listeners-in-selenium-webdriver-with-examples/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+* [TestNG Annotations Tutorial with Examples for Selenium Automation](https://www.lambdatest.com/blog/complete-guide-on-testng-annotations-for-selenium-webdriver/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+* [How to Use TestNG Reporter Log in Selenium](https://www.lambdatest.com/blog/how-to-use-testng-reporter-log-in-selenium/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+* [How to Generate TestNG Reports in Jenkins](https://www.lambdatest.com/blog/how-to-generate-testng-reports-in-jenkins/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
 
 
-```
+## Documentation & Resources :books:
 
-package com.lambdatest;
+      
+Visit the following links to learn more about LambdaTest's features, setup and tutorials around test automation, mobile app testing, responsive testing, and manual testing.
 
-import org.openqa.selenium.remote.DesiredCapabilities;
-import org.openqa.selenium.remote.RemoteWebDriver;
-import org.testng.ITestContext;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-import com.lambdatest.tunnel.Tunnel;
+* [LambdaTest Documentation](https://www.lambdatest.com/support/docs/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+* [LambdaTest Blog](https://www.lambdatest.com/blog/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
+* [LambdaTest Learning Hub](https://www.lambdatest.com/learning-hub/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)    
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+## LambdaTest Community :busts_in_silhouette:
 
-public class TestNGTodo2 {
-    private Tunnel t;
-    private RemoteWebDriver driver;
-    private String Status = "failed";
-    private Process mitmproxyProcess;
-    private String newFilePath;
+The [LambdaTest Community](https://community.lambdatest.com/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium) allows people to interact with tech enthusiasts. Connect, ask questions, and learn from tech-savvy people. Discuss best practises in web development, testing, and DevOps with professionals from across the globe 🌎
 
-    @BeforeMethod
-    public void setup(Method m, ITestContext ctx) throws Exception {
-        String username = "ritamg";
-        String authkey = "acees_key";
-        String hub = "@hub.lambdatest.com/wd/hub";
+## What's New At LambdaTest ❓
 
-        int port = PortAllocator.getNextPort();
+To stay updated with the latest features and product add-ons, visit [Changelog](https://changelog.lambdatest.com) 
+      
+## About LambdaTest
 
-        t = new Tunnel();
-        HashMap<String, String> options = new HashMap<>();
-        options.put("user", username);
-        options.put("key", authkey);
-        options.put("mitm", "true");
-        options.put("proxyHost", "localhost");
-        options.put("proxyPort", String.valueOf(port));
-        options.put("ingress-only", "true");
-        options.put("tunnelName",m.getName() + this.getClass().getName());
-        t.start(options);
+[LambdaTest](https://www.lambdatest.com/?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium) is a leading test execution and orchestration platform that is fast, reliable, scalable, and secure. It allows users to run both manual and automated testing of web and mobile apps across 3000+ different browsers, operating systems, and real device combinations. Using LambdaTest, businesses can ensure quicker developer feedback and hence achieve faster go to market. Over 500 enterprises and 1 Million + users across 130+ countries rely on LambdaTest for their testing needs.    
 
-        // Start the LambdaTest Tunnel
-        String originalFilePath = "ritam.py";
-        newFilePath = m.getName() + "_" + this.getClass().getName() + ".py";
-        Files.copy(Paths.get(originalFilePath), Paths.get(newFilePath), StandardCopyOption.REPLACE_EXISTING);
+### Features
 
-        // Start mitmdump with the copied script
-        ProcessBuilder processBuilder = new ProcessBuilder("./start_mitmproxy.sh", newFilePath, String.valueOf(port));
-        mitmproxyProcess = processBuilder.start();
-        System.out.println("Proxy server started on port " + port);
+* Run Selenium, Cypress, Puppeteer, Playwright, and Appium automation tests across 3000+ real desktop and mobile environments.
+* Real-time cross browser testing on 3000+ environments.
+* Test on Real device cloud
+* Blazing fast test automation with HyperExecute
+* Accelerate testing, shorten job times and get faster feedback on code changes with Test At Scale.
+* Smart Visual Regression Testing on cloud
+* 120+ third-party integrations with your favorite tool for CI/CD, Project Management, Codeless Automation, and more.
+* Automated Screenshot testing across multiple browsers in a single click.
+* Local testing of web and mobile apps.
+* Online Accessibility Testing across 3000+ desktop and mobile browsers, browser versions, and operating systems.
+* Geolocation testing of web and mobile apps across 53+ countries.
+* LT Browser - for responsive testing across 50+ pre-installed mobile, tablets, desktop, and laptop viewports
 
-        // Capture and handle process output streams to prevent blocking
-        Executors.newSingleThreadExecutor().submit(() -> {
-            try (InputStream is = mitmproxyProcess.getInputStream()) {
-                byte[] buffer = new byte[1024];
-                while (is.read(buffer) != -1) {
-                    // Do nothing, just consume the stream to prevent blocking
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-
-        Executors.newSingleThreadExecutor().submit(() -> {
-            try (InputStream is = mitmproxyProcess.getErrorStream()) {
-                byte[] buffer = new byte[1024];
-                while (is.read(buffer) != -1) {
-                    // Do nothing, just consume the stream to prevent blocking
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-
-        // Configure DesiredCapabilities
-        DesiredCapabilities caps = new DesiredCapabilities();
-        caps.setCapability("platform", "Windows 10");
-        caps.setCapability("browserName", "chrome");
-        caps.setCapability("version", "latest");
-        caps.setCapability("build", "TestNG With Java");
-        caps.setCapability("name", m.getName() + this.getClass().getName());
-        caps.setCapability("plugin", "git-testng");
-        caps.setCapability("tunnel", true);
-        caps.setCapability("tunnelName",m.getName() + this.getClass().getName());
-        caps.setCapability("network", true);
-
-        String[] Tags = new String[]{"Feature", "Magicleap", "Severe"};
-        caps.setCapability("tags", Tags);
-
-        driver = new RemoteWebDriver(new URL("https://" + username + ":" + authkey + hub), caps);
-    }
-
-    @Test
-    public void basicTest() throws InterruptedException {
-        System.out.println("Loading Url");
-
-        Map<String, Map<String, String>> mockData = new HashMap<>();
-
-        // Define the mock data for a single API
-        Map<String, String> api1MockData = new HashMap<>();
-        api1MockData.put("Server", "ritam2.com");
-        mockData.put("https://www.lambdatest.com/resources/js/zohocrm.js", api1MockData);
-
-        Map<String, String> api2MockData = new HashMap<>();
-        api2MockData.put("Referrer-Policy", "value2");
-        mockData.put("https://www.lambdatest.com/resources/js/zohoscript.js",api2MockData);
-
-        // Modify the Python file with the mock data
-        PythonFileModifier.modifyLineInFile(newFilePath,mockData);
-
-        Thread.sleep(10000);
-        driver.get("https://lambdatest.com/");
-        Thread.sleep(15000);
-
-        Status = "passed";
-        System.out.println("Test Finished");
-    }
-
-    @AfterMethod
-    public void tearDown() {
-        if (driver != null) {
-            driver.executeScript("lambda-status=" + Status);
-            driver.quit();
-        }
-
-        // Stop the LambdaTest Tunnel
-        if (t != null) {
-            try {
-                t.stop();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        // Stop mitmproxy process
-        if (mitmproxyProcess != null) {
-            mitmproxyProcess.destroy();
-            try {
-                if (!mitmproxyProcess.waitFor(50, TimeUnit.SECONDS)) {
-                    mitmproxyProcess.destroyForcibly();
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-}
-```
-
-## Starting the Maven Tunnel 🚀
-Here's an example of how to start the Maven tunnel:
-This should be settes up in beforemethoud or beforetest
-
-```
-String username = "ritamg";
-String authkey = "acess_key";
-String hub = "@hub.lambdatest.com/wd/hub";
-
-int port = PortAllocator.getNextPort();  // Allocates random port and ensures no other session uses this port
-
-t = new Tunnel();
-HashMap<String, String> options = new HashMap<>();
-options.put("user", username);
-options.put("key", authkey);
-options.put("mitm", "true");
-options.put("proxyHost", "localhost"); // Sets the local host
-options.put("proxyPort", String.valueOf(port)); // Gets the proxy port
-options.put("ingress-only", "true");
-options.put("tunnelName", m.getName() + this.getClass().getName());
-t.start(options); // Starts the tunnel
-
-String originalFilePath = "ritam.py";
-newFilePath = m.getName() + "_" + this.getClass().getName() + ".py";
-Files.copy(Paths.get(originalFilePath), Paths.get(newFilePath), StandardCopyOption.REPLACE_EXISTING);
-
-// Spinning up the mitmproxy server
-ProcessBuilder processBuilder = new ProcessBuilder("./start_mitmproxy.sh", newFilePath, String.valueOf(port));
-mitmproxyProcess = processBuilder.start();
-System.out.println("Proxy server started on port " + port);
+    
+[<img height="58" width="200" src="https://user-images.githubusercontent.com/70570645/171866795-52c11b49-0728-4229-b073-4b704209ddde.png">](https://accounts.lambdatest.com/register?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)
 
 
-```
+      
+## We are here to help you :headphones:
 
-Also, please ensure that you add the following dependency over your pom.xml for maven tunnel
-
-```
-		<dependency>
-			<groupId>com.github.lambdatest</groupId>
-			<artifactId>lambdatest-tunnel-binary</artifactId>
-			<version>4.0.1-beta</version>
-		</dependency>
-```
-
-
-Using the Proxy Server in Test Cases 🌐
-Here's how to use the proxy server in your test cases:
-
-
-```
-Map<String, Map<String, String>> mockData = new HashMap<>();
-
-// Define the mock data for a single API
-Map<String, String> api1MockData = new HashMap<>();
-api1MockData.put("Server", "ritam2.com");
-mockData.put("https://www.lambdatest.com/resources/js/zohocrm.js", api1MockData);
-
-Map<String, String> api2MockData = new HashMap<>();
-api2MockData.put("Referrer-Policy", "value2");
-mockData.put("https://www.lambdatest.com/resources/js/zohoscript.js", api2MockData);
-
-// Modify the Python file with the mock data
-PythonFileModifier.modifyLineInFile(newFilePath, mockData);
-
-```
-
-
-
-
-
-Conclusion 🎉
-
-This project provides a robust setup for modifying request headers using MITMProxy, enabling extensive testing capabilities. By following the examples and guidelines provided, you can easily integrate these utilities into your own testing environment.
+* Got a query? we are available 24x7 to help. [Contact Us](mailto:support@lambdatest.com)
+* For more info, visit - [LambdaTest](https://www.lambdatest.com?utm_source=github&utm_medium=repo&utm_campaign=Java-TestNG-Selenium)

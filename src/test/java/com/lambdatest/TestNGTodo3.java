@@ -109,15 +109,21 @@ public class TestNGTodo3 {
     public void basicTest() throws InterruptedException {
         System.out.println("Loading Url");
 
+        Map<String, Map<String, String>> mockData = new HashMap<>();
+
+
         // Define the mock data for a single API
-        String apiUrl = "https://www.lambdatest.com/resources/js/zohocrm.js";
-        Map<String, String> mockData = new HashMap<>();
-        mockData.put("Server", "ritam3");
-        mockData.put("Via", "lambdatest3.com");
-        mockData.put("additional_data","Ritam3");
+        Map<String, String> api1MockData = new HashMap<>();
+        api1MockData.put("Server", "ritam3.com");
+        mockData.put("https://www.lambdatest.com/resources/js/zohocrm.js", api1MockData);
+
+
+        Map<String, String> api2MockData = new HashMap<>();
+        api2MockData.put("Referrer-Policy", "value3");
+        mockData.put("https://www.lambdatest.com/resources/js/zohoscript.js",api2MockData);
 
         // Modify the Python file with the mock data
-        PythonFileModifier.modifyLineInFile(newFilePath, apiUrl, mockData);
+        PythonFileModifier.modifyLineInFile(newFilePath,mockData);
 
         Thread.sleep(10000);
         driver.get("https://lambdatest.com/");
@@ -157,10 +163,10 @@ public class TestNGTodo3 {
 
         // Clean up the copied Python file
         //Files.deleteIfExists(Paths.get(newFilePath));
-        try {
-            Files.deleteIfExists(Paths.get(newFilePath));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            Files.deleteIfExists(Paths.get(newFilePath));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 }

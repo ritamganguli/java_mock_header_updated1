@@ -1,19 +1,16 @@
 from mitmproxy import http
 import json
 
-# Define the URL and headers to modify
-api_url = 'https://www.lambdatest.com/resources/js/zohocrm.js'
-headers_to_mock = {
-
-}
-
+# Define the URLs and headers to modify
 def response(flow: http.HTTPFlow) -> None:
-    if flow.request.pretty_url == api_url:
+    api_url = flow.request.pretty_url
+    if api_url in urls_to_mock:
         # Modify the specified headers
-        for header, value in headers_to_mock.items():
+        for header, value in urls_to_mock[api_url].items():
             flow.response.headers[header] = value
 
         # Save headers to a file
         headers = {k: v for k, v in flow.response.headers.items()}
         with open("modified_headers.json", "w") as file:
             json.dump(headers, file, indent=2)
+        print(f"Modified headers for {api_url}: {headers}")

@@ -1,11 +1,11 @@
 {
-  "date": "Sun, 14 Jul 2024 12:40:45 GMT",
+  "date": "Sun, 14 Jul 2024 15:00:58 GMT",
   "content-type": "application/javascript",
   "vary": "Accept-Encoding",
   "last-modified": "Sat, 13 Jul 2024 10:30:34 GMT",
   "etag": "W/\"b24abb909bdeb634019c7f95c857f656\"",
   "x-cache": "Miss from cloudfront",
-  "via": "lambdatest3.com",
+  "via": "1.1 2174e600dd54879ba9f49d0337eeb2dc.cloudfront.net (CloudFront)",
   "x-amz-cf-pop": "IAD55-P1",
   "x-amz-cf-id": "OHTtIy73sfrVpZyQN-tQwJIkLFfqAUsL1fOWnH4S1JPZuWmxG8gfqw==",
   "referrer-policy": "no-referrer-when-downgrade",
@@ -13,13 +13,12 @@
   "permissions-policy": "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()",
   "content-security-policy": "default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline'; font-src * data: blob: 'unsafe-inline'",
   "cf-cache-status": "HIT",
-  "age": "91302",
-  "expires": "Wed, 14 Aug 2024 12:40:45 GMT",
+  "age": "99715",
+  "expires": "Wed, 14 Aug 2024 15:00:58 GMT",
   "cache-control": "public, max-age=2678400",
   "x-content-type-options": "nosniff",
   "x-frame-options": "SAMEORIGIN",
-  "server": "ritam3",
-  "cf-ray": "8a319545e8452b0f-DEL",
-  "content-encoding": "br",
-  "additional_data": "Ritam3"
+  "server": "ritam3.com",
+  "cf-ray": "8a3262a989de2afc-DEL",
+  "content-encoding": "br"
 }
