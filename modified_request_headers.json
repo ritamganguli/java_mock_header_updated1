@@ -1,0 +1,17 @@
+{
+  "sec-ch-ua-mobile": "?0",
+  "sec-fetch-site": "same-origin",
+  "accept": "*/*",
+  "sec-ch-ua-platform": "\"Windows\"",
+  "referer": "https://www.lambdatest.com/",
+  "sec-ch-ua": "\"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"126\", \"Google Chrome\";v=\"126\"",
+  "via": "1.1 martian-1ab470bf240824080a05",
+  "accept-language": "en-US,en;q=0.9",
+  "sec-fetch-mode": "no-cors",
+  "sec-fetch-dest": "script",
+  "x-forwarded-for": "127.0.0.1",
+  "accept-encoding": "gzip, deflate, br, zstd",
+  "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+  "Host": "ritam.com",
+  "Server": "amazon"
+}

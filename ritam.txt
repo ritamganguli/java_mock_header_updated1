@@ -1,0 +1,1 @@
+Modified content-encoding for https://www.lambdatest.com/_next/static/css/9705eeae4e8caa0c.css to ritam12 and class is TestNGTodo2
