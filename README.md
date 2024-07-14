@@ -17,12 +17,46 @@ cd java_mock_header_updated2
 
 This project utilizes MITMProxy to mock request headers. The key components include:
 
-PythonFileModifier.java: This utility modifies lines in a Python file to include mock data for testing.
-PortAllocator.java: This utility allocates random ports for each session to avoid conflicts.
-TestNGTodo2.java: This is a sample test class that sets up the testing environment, starts the MITMProxy server, and defines test cases.
+**PythonFileModifier.java: **This utility modifies lines in a Python file to include mock data for testing.
+**PortAllocator.java:** This utility allocates random ports for each session to avoid conflicts.
+**TestNGTodo2.java: **This is a sample test class that sets up the testing environment, starts the MITMProxy server, and defines test cases.
+**mock_proxy.py:** This uses the mitmproxy server service and mocks up the response
+**start_mitmproxy.sh**: bashian script which start the mitmdump server
 
 
-mock_proxy.py
+Prerequisites 📜
+
+Before you begin, ensure you have the following installed:
+
+- Java Development Kit (JDK)
+- Maven
+- Python
+- MITMProxy
+- Git bash /bash 
+
+You can install mitmproxy by the follow command
+
+```
+brew install mitmproxy
+pip install mitmproxy
+```
+
+## start_mitmproxy.sh
+
+```
+#!/bin/bash
+
+# Parameters
+SCRIPT_PATH=$1
+LISTEN_PORT=$2
+
+# Start mitmproxy with the specified script and port
+/usr/local/bin/mitmdump -s $SCRIPT_PATH --mode regular@$LISTEN_PORT
+
+```
+
+
+## mock_proxy.py
 
 This is the code script for mock proxy server which modifies the request headears
 
@@ -110,7 +144,8 @@ public class PythonFileModifier {
 }
 ```
 
-PortAllocator.java
+## **PortAllocator.java**
+
 This class allocates random ports for each session, ensuring no two sessions use the same port. Save this file at the class level of the test cases.
 
 ```
@@ -142,7 +177,8 @@ public class PortAllocator {
 }
 ```
 
-TestNGTodo2.java
+## TestNGTodo2.java
+
 This is an example of a test class using the Maven Tunnel to start up the tunnel and run tests.
 
 
@@ -304,7 +340,7 @@ public class TestNGTodo2 {
 }
 ```
 
-Starting the Maven Tunnel 🚀
+## Starting the Maven Tunnel 🚀
 Here's an example of how to start the Maven tunnel:
 This should be settes up in beforemethoud or beforetest
 
@@ -338,6 +374,17 @@ System.out.println("Proxy server started on port " + port);
 
 ```
 
+Also, please ensure that you add the following dependency over your pom.xml for maven tunnel
+
+```
+		<dependency>
+			<groupId>com.github.lambdatest</groupId>
+			<artifactId>lambdatest-tunnel-binary</artifactId>
+			<version>4.0.1-beta</version>
+		</dependency>
+```
+
+
 Using the Proxy Server in Test Cases 🌐
 Here's how to use the proxy server in your test cases:
 
@@ -356,7 +403,12 @@ mockData.put("https://www.lambdatest.com/resources/js/zohoscript.js", api2MockDa
 
 // Modify the Python file with the mock data
 PythonFileModifier.modifyLineInFile(newFilePath, mockData);
+
 ```
+
+Shell
+
+
 
 
 Conclusion 🎉
