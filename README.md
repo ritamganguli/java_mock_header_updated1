@@ -304,3 +304,61 @@ public class TestNGTodo2 {
 }
 ```
 
+Starting the Maven Tunnel 🚀
+Here's an example of how to start the Maven tunnel:
+This should be settes up in beforemethoud or beforetest
+
+```
+String username = "ritamg";
+String authkey = "acess_key";
+String hub = "@hub.lambdatest.com/wd/hub";
+
+int port = PortAllocator.getNextPort();  // Allocates random port and ensures no other session uses this port
+
+t = new Tunnel();
+HashMap<String, String> options = new HashMap<>();
+options.put("user", username);
+options.put("key", authkey);
+options.put("mitm", "true");
+options.put("proxyHost", "localhost"); // Sets the local host
+options.put("proxyPort", String.valueOf(port)); // Gets the proxy port
+options.put("ingress-only", "true");
+options.put("tunnelName", m.getName() + this.getClass().getName());
+t.start(options); // Starts the tunnel
+
+String originalFilePath = "ritam.py";
+newFilePath = m.getName() + "_" + this.getClass().getName() + ".py";
+Files.copy(Paths.get(originalFilePath), Paths.get(newFilePath), StandardCopyOption.REPLACE_EXISTING);
+
+// Spinning up the mitmproxy server
+ProcessBuilder processBuilder = new ProcessBuilder("./start_mitmproxy.sh", newFilePath, String.valueOf(port));
+mitmproxyProcess = processBuilder.start();
+System.out.println("Proxy server started on port " + port);
+
+
+```
+
+Using the Proxy Server in Test Cases 🌐
+Here's how to use the proxy server in your test cases:
+
+
+```
+Map<String, Map<String, String>> mockData = new HashMap<>();
+
+// Define the mock data for a single API
+Map<String, String> api1MockData = new HashMap<>();
+api1MockData.put("Server", "ritam2.com");
+mockData.put("https://www.lambdatest.com/resources/js/zohocrm.js", api1MockData);
+
+Map<String, String> api2MockData = new HashMap<>();
+api2MockData.put("Referrer-Policy", "value2");
+mockData.put("https://www.lambdatest.com/resources/js/zohoscript.js", api2MockData);
+
+// Modify the Python file with the mock data
+PythonFileModifier.modifyLineInFile(newFilePath, mockData);
+```
+
+
+Conclusion 🎉
+This project provides a robust setup for modifying request headers using MITMProxy, enabling extensive testing capabilities. By following the examples and guidelines provided, you can easily integrate these utilities into your own testing environment.
+
