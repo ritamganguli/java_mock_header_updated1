@@ -386,6 +386,7 @@ Also, please ensure that you add the following dependency over your pom.xml for 
 
 
 Using the Proxy Server in Test Cases 🌐
+
 Here's how to use the proxy server in your test cases:
 
 
