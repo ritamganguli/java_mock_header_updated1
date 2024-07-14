@@ -9,6 +9,7 @@ To get started, clone the repository using the following command:
 ```bash
 git clone https://github.com/ritamganguli/java_mock_header_updated2.git
 cd java_mock_header_updated2
+```
 
 
 Project Overview 📋
@@ -21,6 +22,9 @@ TestNGTodo2.java: This is a sample test class that sets up the testing environme
 
 PythonFileModifier.java
 This class is responsible for modifying specific lines in a Python file to include mock data. Save this file in the directory where your test cases are written.
+Please ensure that you place this class over the test class directory
+
+```
 
 package com.lambdatest;
 
@@ -77,4 +81,4 @@ public class PythonFileModifier {
         return sb.toString();
     }
 }
-
+```
